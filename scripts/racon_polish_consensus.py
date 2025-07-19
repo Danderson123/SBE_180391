@@ -74,7 +74,7 @@ def racon_one_iteration_nanopore(nanopore_fastq,
 def main():
     args = parse_args()
     # make the output directory if it doesn't exist
-    os.makedirs(args.output, exist_ok=True)
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
     # copy the reference to the output directory
     new_ref = os.path.join(os.path.join(os.path.dirname(args.output), "sequence_to_polish.fasta"))
     shutil.copy(args.reference, new_ref)
@@ -87,7 +87,7 @@ def main():
                 new_ref,
                 "read.mapped.sam",
                 "sequence_to_polish.fasta",
-                "polished_sequence.fasta",
+                os.path.basename(args.output),
                 args.cores
             )
 

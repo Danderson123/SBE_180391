@@ -16,6 +16,8 @@ rule all:
     input:
         expand(os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_illumina_plot.pdf"), sample=illumina_samples),
         expand(os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_nanopore_plot.pdf"), sample=nanopore_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "racon", "diagnostic_illumina_plot.pdf"), sample=illumina_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "racon", "diagnostic_nanopore_plot.pdf"), sample=nanopore_samples)
 
 # validate the inputs
 rule validate_inputs:
@@ -127,6 +129,29 @@ rule diagnostic_samtools_nanopore:
         nanopore=os.path.join(config["nanopore_directory"], "{sample}_1.fastq.gz")
     output:
         plot=os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_nanopore_plot.pdf")
+    threads: 4
+    shell:
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --nanopore {input.nanopore} --output {output.plot} --cores {threads}"
+
+# make diagnostic plots for the illumina reads
+rule diagnostic_racon_illumina:
+    input:
+        consensus=os.path.join(config["output_dir"], "{sample}", "racon", "illumina_consensus.fasta"),
+        illumina_1=os.path.join(config["illumina_directory"], "{sample}_1.fastq.gz"),
+        illumina_2=os.path.join(config["illumina_directory"], "{sample}_2.fastq.gz")
+    output:
+        plot=os.path.join(config["output_dir"], "{sample}", "racon", "diagnostic_illumina_plot.pdf")
+    threads: 4
+    shell:
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.plot} --cores {threads}"
+
+# make diagnostic plots for the nanopore readsillumina_consensus
+rule diagnostic_racon_nanopore:
+    input:
+        consensus=os.path.join(config["output_dir"], "{sample}", "racon", "nanopore_consensus.fasta"),
+        nanopore=os.path.join(config["nanopore_directory"], "{sample}_1.fastq.gz")
+    output:
+        plot=os.path.join(config["output_dir"], "{sample}", "racon", "diagnostic_nanopore_plot.pdf")
     threads: 4
     shell:
         "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --nanopore {input.nanopore} --output {output.plot} --cores {threads}"
