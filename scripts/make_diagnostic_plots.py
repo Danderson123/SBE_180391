@@ -58,7 +58,11 @@ def get_mean_read_depth_per_contig(bam_file):
     for line in result.stdout.strip().split("\n"):
         contig, position, depth = line.split("\t")
         data.append((contig, int(position), int(depth)))
-    return data
+    # Create a DataFrame from the parsed data
+    df = pd.DataFrame(data, columns=["contig", "position", "depth"])
+    # Calculate mean depth for each contig
+    mean_depth_per_contig = df.groupby("contig")["depth"].mean().to_dict()
+    return mean_depth_per_contig, data
 
 def count_soft_clipping(bam_file_path):
     # Open the BAM file
@@ -81,7 +85,7 @@ def count_soft_clipping(bam_file_path):
     bamfile.close()
     return clipping_counts
 
-def plot_read_depths(data, clipping_counts, coverage_plot):
+def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot):
     # Initialize the plot
     fig, axes = plt.subplots(2, 1, figsize=(20, 10), sharey=False, sharex=True)
 
@@ -94,8 +98,9 @@ def plot_read_depths(data, clipping_counts, coverage_plot):
     contig_starts = {}
     sorted_data = sorted(data, key=lambda x: x[0])
     for contig, position, depth in sorted_data:
-        xvals.append(current_pos)
-        yvals.append(depth)
+        if mean_depth_per_contig[contig] > 0:
+            xvals.append(current_pos)
+            yvals.append(depth / mean_depth_per_contig[contig])
         current_pos += 1
         if contig != prev_contig:
             v_lines.append(current_pos)
