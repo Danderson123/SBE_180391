@@ -22,8 +22,8 @@ def parse_args():
         parser.error("--illumina1 needs to be specified alongside --illumina2.")
     return args
 
-def racon_polish(reads, sam_file, reference_fasta, output_fasta):
-    racon_command = f"racon -u -t 1 --no-trimming -w 500 {reads} {sam_file} {reference_fasta} > {output_fasta}"
+def racon_polish(reads, sam_file, reference_fasta, output_fasta, cores):
+    racon_command = f"racon -u -t {cores} --no-trimming -w 500 {reads} {sam_file} {reference_fasta} > {output_fasta}"
     subprocess.run(racon_command, shell=True, check=True)
 
 def map_illumina_reads(output_dir, reference_fasta, illumina, output_prefix, cores):
@@ -73,6 +73,7 @@ def racon_one_iteration_nanopore(nanopore_fastq,
         os.path.join(output_dir, sam_file),
         os.path.join(output_dir, sequence_to_polish),
         os.path.join(output_dir, polished_sequence),
+        cores
     )
 
     # Overwrite input for next iteration
@@ -107,6 +108,7 @@ def racon_one_iteration_illumina(interleaved_fastq,
         os.path.join(output_dir, sam_file),
         os.path.join(output_dir, sequence_to_polish),
         os.path.join(output_dir, polished_sequence),
+        cores
     )
 
     # Overwrite input for next iteration
