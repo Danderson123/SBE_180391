@@ -26,13 +26,13 @@ def racon_polish(reads, sam_file, reference_fasta, output_fasta):
     racon_command = f"racon -u -t 1 --no-trimming -w 500 {reads} {sam_file} {reference_fasta} > {output_fasta}"
     subprocess.run(racon_command, shell=True, check=True)
 
-def map_illumina_reads(output_dir, reference_fasta, illumina1, illumina2, output_prefix, cores):
+def map_illumina_reads(output_dir, reference_fasta, illumina, output_prefix, cores):
     sam_file = os.path.join(output_dir, f"{output_prefix}.mapped.sam")
     bam_file = os.path.join(output_dir, f"{output_prefix}.mapped.bam")
 
     os.makedirs(output_dir, exist_ok=True)
 
-    map_command = f"minimap2 -a --MD -t {cores} -x sr --eqx -o {sam_file} --secondary=no {reference_fasta} {illumina1} {illumina2}"
+    map_command = f"minimap2 -a --MD -t {cores} -x sr --eqx -o {sam_file} --secondary=no {reference_fasta} {illumina}"
     subprocess.run(map_command, shell=True, check=True)
     sort_and_index_command = f"samtools sort -@ {cores} {sam_file} > {bam_file} && samtools index {bam_file}"
     subprocess.run(sort_and_index_command, shell=True, check=True)
