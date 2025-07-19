@@ -1,0 +1,18 @@
+# Makefile for SBE_180391 project
+PROJECT = SBE_180391
+OS := $(shell uname -s)
+CORES = 4
+
+.PHONY: run snakemake-run singularity-run test
+
+# Standard snakemake execution
+run:
+	snakemake --cores $(CORES) --nolock --rerun-incomplete
+
+# Snakemake with Singularity container
+singularity:
+	singularity run $(PROJECT).img snakemake --cores $(CORES) --nolock --rerun-incomplete
+
+# Dry run for testing
+test:
+	snakemake --dry-run --cores $(CORES)
