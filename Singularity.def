@@ -6,6 +6,7 @@ From: ubuntu:20.04
 
 %files
     environment.yaml software/environment.yaml
+    Snakefile /Snakefile
 
 %post
     export DEBIAN_FRONTEND=noninteractive
