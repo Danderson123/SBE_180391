@@ -23,3 +23,11 @@ or if you have [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba
 This repository includes a recipe and pre-built [singularity]() container. The pre-built container is available with each release and the container can be built with:
 
 `sudo singularity build SBE_180391.img Singularity.def`
+
+# Configuration
+
+The reference genome (in FASTA) format used to generate the consensus can be changed by modifying the value for `reference_FASTA` in `config.yaml` to the absolute path of the new reference FASTA.
+
+The directory containing the long reads to be analysed can be modify by changing the value for `nanopore_directory` in `config.yaml` to the absolute path to the new directory.
+
+The directory containing the short reads to be analysed can be modify by changing the value for `illumina_directory` in `config.yaml` to the absolute path to the new directory **NOTE: Illumina reads are assumed to be paired-end and deinterleaved**.
