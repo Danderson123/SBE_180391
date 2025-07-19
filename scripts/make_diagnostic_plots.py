@@ -29,7 +29,7 @@ def map_nanopore_fastq_to_ref(fastq_file,
                             cores):
     # Build the minimap2 command
     output_sam = output_bam.replace(".bam", ".sam")
-    command = f"minimap2 --eqx -t {cores} -a -x map-ont --secondary=no -o {output_sam} {reference_file} {fastq_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
+    command = f"minimap2 --eqx -t {cores} -a -x map-ont --secondary=no -o {output_sam} {reference_file} {fastq_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && samtools index {output_bam}"
     subprocess.run(command, shell=True, check=True)
     return output_bam
 
@@ -40,7 +40,7 @@ def map_illumina_fastq_to_ref(illumina1_file,
                             cores):
     # Build the minimap2 command
     output_sam = output_bam.replace(".bam", ".sam")
-    command = f"minimap2 --eqx -t {cores} -a -x sr --secondary=no -o {output_sam} {reference_file} {illumina1_file} {illumina2_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
+    command = f"minimap2 --eqx -t {cores} -a -x sr --secondary=no -o {output_sam} {reference_file} {illumina1_file} {illumina2_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && samtools index {output_bam}"
     subprocess.run(command, shell=True, check=True)
     return output_bam
 

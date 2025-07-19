@@ -22,12 +22,8 @@ def parse_args():
         parser.error("--illumina1 needs to be specified alongside --illumina2.")
     return args
 
-def racon_polish_nanopore(nanopore, sam_file, reference_fasta, output_fasta):
-    racon_command = f"racon -u -t 1 --no-trimming -w 500 {nanopore} {sam_file} {reference_fasta} > {output_fasta}"
-    subprocess.run(racon_command, shell=True, check=True)
-
-def racon_polish_illumina(illumina1, illumina2, sam_file, reference_fasta, output_fasta):
-    racon_command = f"racon -u -t 1 --no-trimming -w 500 {illumina1} {illumina2} {sam_file} {reference_fasta} > {output_fasta}"
+def racon_polish(reads, sam_file, reference_fasta, output_fasta):
+    racon_command = f"racon -u -t 1 --no-trimming -w 500 {reads} {sam_file} {reference_fasta} > {output_fasta}"
     subprocess.run(racon_command, shell=True, check=True)
 
 def map_illumina_reads(output_dir, reference_fasta, illumina1, illumina2, output_prefix, cores):
@@ -72,7 +68,7 @@ def racon_one_iteration_nanopore(nanopore_fastq,
     )
 
     # Polish sequence
-    racon_polish_nanopore(
+    racon_polish(
         nanopore_fastq,
         os.path.join(output_dir, sam_file),
         os.path.join(output_dir, sequence_to_polish),
@@ -88,8 +84,7 @@ def racon_one_iteration_nanopore(nanopore_fastq,
     return bam_file
 
 
-def racon_one_iteration_illumina(illumina_1,
-                                illumina_2,
+def racon_one_iteration_illumina(interleaved_fastq,
                                 output_file,
                                 output_dir,
                                 reference_fasta,
@@ -101,16 +96,14 @@ def racon_one_iteration_illumina(illumina_1,
     bam_file = map_illumina_reads(
         output_dir,
         reference_fasta,
-        illumina_1,
-        illumina_2
+        interleaved_fastq,
         sam_file.replace(".mapped.sam", ""),
         cores
     )
 
     # Polish sequence
-    racon_polish_illumina(
-        illumina_1,
-        illumina_2,
+    racon_polish(
+        interleaved_fastq,
         os.path.join(output_dir, sam_file),
         os.path.join(output_dir, sequence_to_polish),
         os.path.join(output_dir, polished_sequence),
@@ -144,10 +137,12 @@ def main():
                 args.cores
             )
     if args.illumina1 and args.illumina2:
+        # interleave the illumina reads
+        interleaved_fastq = os.path.join(os.path.dirname(args.output), "interleaved.fastq.gz")
+        subprocess.run(f"fastaq interleave {args.illumina1} {args.illumina2} {interleaved_fastq}", shell=True, check=True)
         for i in range(args.iterations):
             racon_one_iteration_illumina(
-                args.illumina1,
-                args.illumina2,
+                interleaved_fastq,
                 args.output,
                 os.path.dirname(args.output),
                 new_ref,
