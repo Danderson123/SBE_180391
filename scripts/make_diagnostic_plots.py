@@ -56,8 +56,9 @@ def get_mean_read_depth_per_contig(bam_file):
     # Read the output into a DataFrame
     data = []
     for line in result.stdout.strip().split("\n"):
-        contig, position, depth = line.split("\t")
-        data.append((contig, int(position), int(depth)))
+        if line != "":
+            contig, position, depth = line.split("\t")
+            data.append((contig, int(position), int(depth)))
     # Create a DataFrame from the parsed data
     df = pd.DataFrame(data, columns=["contig", "position", "depth"])
     # Calculate mean depth for each contig
