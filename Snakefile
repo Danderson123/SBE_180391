@@ -74,6 +74,29 @@ rule samtools_illumina_consensus:
     shell:
         "samtools consensus -f FASTA -o {output.consensus} --show-ins no -@ {threads} {input.bam_file}"
 
+# make illumina consenus using racon
+rule racon_illumina_consensus:
+    input:
+        reference=os.path.join(config["reference_FASTA"]),
+        illumina_1=os.path.join(config["illumina_directory"], "{sample}_1.fastq.gz"),
+        illumina_2=os.path.join(config["illumina_directory"], "{sample}_2.fastq.gz")
+    output:
+        consensus=os.path.join(config["output_dir"], "{sample}", "racon", "illumina_consensus.fasta")
+    threads: 4
+    shell:
+        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.consensus} --cores {threads}"
+
+# make nanopore consenus using racon
+rule racon_nanopore_consensus:
+    input:
+        reference=os.path.join(config["reference_FASTA"]),
+        nanopore=os.path.join(config["nanopore_directory"], "{sample}_1.fastq.gz")
+    output:
+        consensus=os.path.join(config["output_dir"], "{sample}", "racon", "nanopore_consensus.fasta")
+    threads: 4
+    shell:
+        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --nanopore {input.nanopore} --output {output.consensus} --cores {threads}"
+
 # make nanopore consenus using samtools
 rule samtools_nanopore_consensus:
     input:
@@ -95,7 +118,7 @@ rule diagnostic_samtools_illumina:
         plot=os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_illumina_plot.pdf")
     threads: 4
     shell:
-        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.plot}"
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.plot} --cores {threads}"
 
 # make diagnostic plots for the nanopore readsillumina_consensus
 rule diagnostic_samtools_nanopore:
@@ -106,4 +129,4 @@ rule diagnostic_samtools_nanopore:
         plot=os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_nanopore_plot.pdf")
     threads: 4
     shell:
-        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --nanopore {input.nanopore} --output {output.plot}"
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --nanopore {input.nanopore} --output {output.plot} --cores {threads}"

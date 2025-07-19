@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument("--illumina1", dest="illumina1", help="The path to the first illumina FASTQ.", default=None)
     parser.add_argument("--illumina2", dest="illumina2", help="The path to the second illumina FASTQ.", default=None)
     parser.add_argument("--output", dest="output", help="The path to the output file.", default=None)
+    parser.add_argument("--cores", dest="cores", help="The number of cores to use.", default=1)
     args = parser.parse_args()
     if args.nanopore and (args.illumina1 or args.illumina2):
         parser.error("Only one of --nananopore or --illumina1/illumina2 can be specified per run.")
@@ -24,20 +25,22 @@ def parse_args():
 
 def map_nanopore_fastq_to_ref(fastq_file,
                             reference_file,
-                            output_bam):
+                            output_bam,
+                            cores):
     # Build the minimap2 command
     output_sam = output_bam.replace(".bam", ".sam")
-    command = f"minimap2 --eqx -t 24 -a -x map-ont --secondary=no -o {output_sam} {reference_file} {fastq_file} && samtools sort -@ 24 {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
+    command = f"minimap2 --eqx -t {cores} -a -x map-ont --secondary=no -o {output_sam} {reference_file} {fastq_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
     subprocess.run(command, shell=True, check=True)
     return output_bam
 
 def map_illumina_fastq_to_ref(illumina1_file,
                             illumina2_file,
                             reference_file,
-                            output_bam):
+                            output_bam,
+                            cores):
     # Build the minimap2 command
     output_sam = output_bam.replace(".bam", ".sam")
-    command = f"minimap2 --eqx -t 24 -a -x sr --secondary=no -o {output_sam} {reference_file} {illumina1_file} {illumina2_file} && samtools sort -@ 24 {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
+    command = f"minimap2 --eqx -t {cores} -a -x sr --secondary=no -o {output_sam} {reference_file} {illumina1_file} {illumina2_file} && samtools sort -@ {cores} {output_sam} > {output_bam} && rm -rf {output_sam} && samtools index {output_bam}"
     subprocess.run(command, shell=True, check=True)
     return output_bam
 
@@ -133,7 +136,7 @@ def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot
     plt.xlim(0, 15000)
     # Save the combined plot
     plt.tight_layout()
-    plt.savefig(coverage_plot, dpi=600)
+    plt.savefig(coverage_plot)
     plt.close()
 
 def main():
@@ -148,14 +151,14 @@ def main():
                 args.illumina1,
                 args.illumina2,
                 args.reference,
-                args.output.replace(".png", ".bam")
-                )
+                args.output.replace(".pdf", ".bam"),
+                args.cores)
     if args.nanopore:
         bam_file = map_nanopore_fastq_to_ref(
                 args.nanopore,
                 args.reference,
-                args.output.replace(".png", ".bam")
-                )
+                args.output.replace(".pdf", ".bam"),
+                args.cores)
     # get the mean depth of each contig
     mean_depth_per_contig, depth_data = get_mean_read_depth_per_contig(bam_file)
     # get soft clipping positions across the genome
