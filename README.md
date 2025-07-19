@@ -24,7 +24,7 @@ Begin by cloning and cd-ing into the directory using:
 
 The required dependencies can be installed through conda using:
 
-`conda env create -f environment.yaml`
+`make install`
 
 or if you have [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) installed:
 
@@ -32,9 +32,9 @@ or if you have [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba
 
 ## Singularity (preferred method)
 
-This repository includes a recipe and pre-built [singularity]() container. The pre-built container is available with each release and the container can be built with:
+This repository includes a recipe and pre-built [singularity]() container. If you have root access, pre-built container is available with each release and if you have root access, the container can be built with:
 
-`sudo singularity build SBE_180391.img Singularity.def`
+`make singularity-build`
 
 # Configuration
 

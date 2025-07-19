@@ -16,3 +16,11 @@ singularity:
 # Dry run for testing
 test:
 	snakemake --dry-run --cores $(CORES)
+
+install:
+	conda env create -f environment.yaml
+	conda activate $(PROJECT)
+
+# build Singularity image
+singularity-build:
+	sudo singularity build $(PROJECT).img Singularity.def

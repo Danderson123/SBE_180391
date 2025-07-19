@@ -14,8 +14,8 @@ illumina_samples = [os.path.basename(read).replace("_1.", ".").replace("_2.", ".
 # define rule all
 rule all:
     input:
-        expand(os.path.join(config["output_dir"], "{sample}", "mapped_illumina.bam"), sample=illumina_samples),
-        expand(os.path.join(config["output_dir"], "{sample}", "mapped_nanopore.bam"), sample=nanopore_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "illumina_consensus.fasta"), sample=illumina_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "nanopore_consensus.fasta"), sample=nanopore_samples),
 
 # validate the inputs
 rule validate_inputs:
@@ -62,3 +62,25 @@ rule map_nanopore_reads:
     shell:
         "minimap2 -ax map-ont -a --MD --eqx -t {threads} -o {output.sam_file} {input.reference} {input.nanopore} \
             && samtools sort -@ {threads} {output.sam_file} > {output.bam_file} && samtools index {output.bam_file}"
+
+# make illumina consenus using samtools
+rule samtools_illumina_consensus:
+    input:
+        bam_file=os.path.join(config["output_dir"], "{sample}", "mapped_illumina.bam"),
+        reference=os.path.join(config["reference_FASTA"])
+    output:
+        consensus=os.path.join(config["output_dir"], "{sample}", "samtools", "illumina_consensus.fasta")
+    threads: 4
+    shell:
+        "samtools consensus -f FASTA -o {output.consensus} --show-ins no -@ {threads} {input.bam_file}"
+
+# make nanopore consenus using samtools
+rule samtools_nanopore_consensus:
+    input:
+        bam_file=os.path.join(config["output_dir"], "{sample}", "mapped_nanopore.bam"),
+        reference=os.path.join(config["reference_FASTA"])
+    output:
+        consensus=os.path.join(config["output_dir"], "{sample}", "samtools", "nanopore_consensus.fasta")
+    threads: 4
+    shell:
+        "samtools consensus -f FASTA -o {output.consensus} --show-ins no -@ {threads} {input.bam_file}"
