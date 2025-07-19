@@ -108,7 +108,6 @@ def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot
             prev_contig = contig
             contig_starts[contig] = current_pos
     axes[0].plot(xvals, yvals, label="Normalized Read Depth", color="blue")
-    axes[0].set_ylim([0, 5])
     # Add vertical lines for contig boundaries
     for v in v_lines:
         axes[0].axvline(x=v, linestyle="dashed", color="gray")
@@ -134,7 +133,6 @@ def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot
     axes[0].set_ylabel("Normalized Read Depth")
     axes[1].set_ylabel("Soft clipping counts")
     plt.legend()
-    plt.xlim(0, 15000)
     # Save the combined plot
     plt.tight_layout()
     plt.savefig(coverage_plot)
