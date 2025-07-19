@@ -24,6 +24,18 @@ This repository includes a recipe and pre-built [singularity]() container. The p
 
 `sudo singularity build SBE_180391.img Singularity.def`
 
+# Quick start
+
+The pipeline assumes that you are mapping reads to version 3 of the H37Rv *Mycobacterium tuberculosis* reference assembly. If you wish to change the reference assembly, scroll down to "Configuration". Place the FASTQ files that you want to map to the reference in `long_reads/` or `short_reads` if you are working with ONT reads or Illumina reads, respectively. The pipeline assumes that there are two FASTQ files for each Illumina sample, corresponding to deinterleaved paired-end reads.
+
+If you installed the dependencies with conda, the pipeline can then be run with:
+
+`make`
+
+If you installed the dependencies with singularity, the pipeline can be run with:
+
+`make singularity`
+
 # Configuration
 
 The reference genome (in FASTA) format used to generate the consensus can be changed by modifying the value for `reference_FASTA` in `config.yaml` to the absolute path of the new reference FASTA.
