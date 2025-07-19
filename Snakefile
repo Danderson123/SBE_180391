@@ -84,7 +84,7 @@ rule racon_illumina_consensus:
         consensus=os.path.join(config["output_dir"], "{sample}", "racon", "illumina_consensus.fasta")
     threads: 4
     shell:
-        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.consensus} --cores {threads}"
+        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.consensus} --cores {threads} --iterations 3"
 
 # make nanopore consenus using racon
 rule racon_nanopore_consensus:
@@ -95,7 +95,7 @@ rule racon_nanopore_consensus:
         consensus=os.path.join(config["output_dir"], "{sample}", "racon", "nanopore_consensus.fasta")
     threads: 4
     shell:
-        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --nanopore {input.nanopore} --output {output.consensus} --cores {threads}"
+        "python3 scripts/racon_polish_consensus.py --reference {input.reference} --nanopore {input.nanopore} --output {output.consensus} --cores {threads} --iterations 3"
 
 # make nanopore consenus using samtools
 rule samtools_nanopore_consensus:
