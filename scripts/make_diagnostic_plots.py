@@ -160,11 +160,11 @@ def main():
                 args.output.replace(".pdf", ".bam"),
                 args.cores)
     # get the mean depth of each contig
-    depth_data = get_mean_read_depth_per_contig(bam_file)
+    mean_depth_per_contig, depth_data = get_mean_read_depth_per_contig(bam_file)
     # get soft clipping positions across the genome
     clipping_counts = count_soft_clipping(bam_file)
     # plot the normalised read depths and soft clipping positions
-    plot_read_depths(depth_data, clipping_counts, args.output)
+    plot_read_depths(mean_depth_per_contig, depth_data, clipping_counts, args.output)
 
 if __name__ == "__main__":
     main()
