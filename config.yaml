@@ -1,0 +1,7 @@
+# Input directories
+reference_FASTA: "M_tuberculosis_H37Rv_v3.fasta"
+illumina_directory: "illumina_reads"
+nanopore_directory: "nanopore_reads"
+# Output directory
+output_dir: "pipeline_output"
+
