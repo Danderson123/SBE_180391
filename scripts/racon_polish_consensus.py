@@ -22,9 +22,25 @@ def parse_args():
         parser.error("--illumina1 needs to be specified alongside --illumina2.")
     return args
 
-def racon_polish(nanopore, sam_file, reference_fasta, output_fasta):
+def racon_polish_nanopore(nanopore, sam_file, reference_fasta, output_fasta):
     racon_command = f"racon -u -t 1 --no-trimming -w 500 {nanopore} {sam_file} {reference_fasta} > {output_fasta}"
     subprocess.run(racon_command, shell=True, check=True)
+
+def racon_polish_illumina(illumina1, illumina2, sam_file, reference_fasta, output_fasta):
+    racon_command = f"racon -u -t 1 --no-trimming -w 500 {illumina1} {illumina2} {sam_file} {reference_fasta} > {output_fasta}"
+    subprocess.run(racon_command, shell=True, check=True)
+
+def map_illumina_reads(output_dir, reference_fasta, illumina1, illumina2, output_prefix, cores):
+    sam_file = os.path.join(output_dir, f"{output_prefix}.mapped.sam")
+    bam_file = os.path.join(output_dir, f"{output_prefix}.mapped.bam")
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    map_command = f"minimap2 -a --MD -t {cores} -x sr --eqx -o {sam_file} --secondary=no {reference_fasta} {illumina1} {illumina2}"
+    subprocess.run(map_command, shell=True, check=True)
+    sort_and_index_command = f"samtools sort -@ {cores} {sam_file} > {bam_file} && samtools index {bam_file}"
+    subprocess.run(sort_and_index_command, shell=True, check=True)
+    return bam_file
 
 def map_nanopore_reads(output_dir, reference_fasta, nanopore, output_prefix, cores):
     sam_file = os.path.join(output_dir, f"{output_prefix}.mapped.sam")
@@ -56,8 +72,45 @@ def racon_one_iteration_nanopore(nanopore_fastq,
     )
 
     # Polish sequence
-    racon_polish(
+    racon_polish_nanopore(
         nanopore_fastq,
+        os.path.join(output_dir, sam_file),
+        os.path.join(output_dir, sequence_to_polish),
+        os.path.join(output_dir, polished_sequence),
+    )
+
+    # Overwrite input for next iteration
+    shutil.copy(
+        os.path.join(output_dir, polished_sequence),
+        os.path.join(output_dir, sequence_to_polish),
+    )
+
+    return bam_file
+
+
+def racon_one_iteration_illumina(illumina_1,
+                                illumina_2,
+                                output_file,
+                                output_dir,
+                                reference_fasta,
+                                sam_file,
+                                sequence_to_polish,
+                                polished_sequence,
+                                cores):
+    # Map reads
+    bam_file = map_illumina_reads(
+        output_dir,
+        reference_fasta,
+        illumina_1,
+        illumina_2
+        sam_file.replace(".mapped.sam", ""),
+        cores
+    )
+
+    # Polish sequence
+    racon_polish_illumina(
+        illumina_1,
+        illumina_2,
         os.path.join(output_dir, sam_file),
         os.path.join(output_dir, sequence_to_polish),
         os.path.join(output_dir, polished_sequence),
@@ -82,6 +135,19 @@ def main():
         for i in range(args.iterations):
             racon_one_iteration_nanopore(
                 args.nanopore,
+                args.output,
+                os.path.dirname(args.output),
+                new_ref,
+                "read.mapped.sam",
+                "sequence_to_polish.fasta",
+                os.path.basename(args.output),
+                args.cores
+            )
+    if args.illumina1 and args.illumina2:
+        for i in range(args.iterations):
+            racon_one_iteration_illumina(
+                args.illumina1,
+                args.illumina2,
                 args.output,
                 os.path.dirname(args.output),
                 new_ref,
