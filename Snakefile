@@ -14,8 +14,8 @@ illumina_samples = [os.path.basename(read).replace("_1.", ".").replace("_2.", ".
 # define rule all
 rule all:
     input:
-        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "illumina_consensus.fasta"), sample=illumina_samples),
-        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "nanopore_consensus.fasta"), sample=nanopore_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_illumina_plot.pdf"), sample=illumina_samples),
+        expand(os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_nanopore_plot.pdf"), sample=nanopore_samples),
 
 # validate the inputs
 rule validate_inputs:
@@ -84,3 +84,26 @@ rule samtools_nanopore_consensus:
     threads: 4
     shell:
         "samtools consensus -f FASTA -o {output.consensus} --show-ins no -@ {threads} {input.bam_file}"
+
+# make diagnostic plots for the illumina reads
+rule diagnostic_samtools_illumina:
+    input:
+        consensus=os.path.join(config["output_dir"], "{sample}", "samtools", "illumina_consensus.fasta"),
+        illumina_1=os.path.join(config["illumina_directory"], "{sample}_1.fastq.gz"),
+        illumina_2=os.path.join(config["illumina_directory"], "{sample}_2.fastq.gz")
+    output:
+        plot=os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_illumina_plot.pdf")
+    threads: 4
+    shell:
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --illumina1 {input.illumina_1} --illumina2 {input.illumina_2} --output {output.plot}"
+
+# make diagnostic plots for the nanopore readsillumina_consensus
+rule diagnostic_samtools_nanopore:
+    input:
+        consensus=os.path.join(config["output_dir"], "{sample}", "samtools", "nanopore_consensus.fasta"),
+        nanopore=os.path.join(config["nanopore_directory"], "{sample}_1.fastq.gz")
+    output:
+        plot=os.path.join(config["output_dir"], "{sample}", "samtools", "diagnostic_nanopore_plot.pdf")
+    threads: 4
+    shell:
+        "python3 scripts/make_diagnostic_plots.py --reference {input.consensus} --nanopore {input.nanopore} --output {output.plot}"
