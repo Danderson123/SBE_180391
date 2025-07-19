@@ -58,11 +58,7 @@ def get_mean_read_depth_per_contig(bam_file):
     for line in result.stdout.strip().split("\n"):
         contig, position, depth = line.split("\t")
         data.append((contig, int(position), int(depth)))
-    # Create a DataFrame from the parsed data
-    df = pd.DataFrame(data, columns=["contig", "position", "depth"])
-    # Calculate mean depth for each contig
-    mean_depth_per_contig = df.groupby("contig")["depth"].mean().to_dict()
-    return mean_depth_per_contig, data
+    return data
 
 def count_soft_clipping(bam_file_path):
     # Open the BAM file
@@ -85,7 +81,7 @@ def count_soft_clipping(bam_file_path):
     bamfile.close()
     return clipping_counts
 
-def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot):
+def plot_read_depths(data, clipping_counts, coverage_plot):
     # Initialize the plot
     fig, axes = plt.subplots(2, 1, figsize=(20, 10), sharey=False, sharex=True)
 
@@ -98,9 +94,8 @@ def plot_read_depths(mean_depth_per_contig, data, clipping_counts, coverage_plot
     contig_starts = {}
     sorted_data = sorted(data, key=lambda x: x[0])
     for contig, position, depth in sorted_data:
-        if mean_depth_per_contig[contig] > 0:
-            xvals.append(current_pos)
-            yvals.append(depth / mean_depth_per_contig[contig])
+        xvals.append(current_pos)
+        yvals.append(depth)
         current_pos += 1
         if contig != prev_contig:
             v_lines.append(current_pos)
@@ -160,11 +155,11 @@ def main():
                 args.output.replace(".pdf", ".bam"),
                 args.cores)
     # get the mean depth of each contig
-    mean_depth_per_contig, depth_data = get_mean_read_depth_per_contig(bam_file)
+    depth_data = get_mean_read_depth_per_contig(bam_file)
     # get soft clipping positions across the genome
     clipping_counts = count_soft_clipping(bam_file)
     # plot the normalised read depths and soft clipping positions
-    plot_read_depths(mean_depth_per_contig, depth_data, clipping_counts, args.output)
+    plot_read_depths(depth_data, clipping_counts, args.output)
 
 if __name__ == "__main__":
     main()
